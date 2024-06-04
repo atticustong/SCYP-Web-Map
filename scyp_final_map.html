@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>SCYP Project Map</title>
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+    <link href="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css" rel="stylesheet">
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js"></script>
+        <style>
+        body {
+                    margin: 0;
+                    padding: 0;
+                    font-family: 'Open Sans', sans-serif;
+                }
+
+                /* sidebar styling */
+                #sidebar {
+                    height: 60%;
+                    width: 450px;
+                    position: fixed;
+                    z-index: 2; /* changed z index so it appears over the map */
+                    top: 0;
+                    left: -450px; /* Default position is still off-screen */
+                    background-color: rgba(17, 17, 17, 0.8);
+                    overflow-x: hidden;
+                    transition: 0.3s;
+                    color: white;
+                    border-bottom-right-radius: 15px
+                }
+
+                #sidebar.open {
+                    left: 0; 
+                }
+
+                #sidebar-content {
+                    padding: 15px;
+                    transition: opacity 0.3s;
+                }
+
+                #sidebar.open #sidebar-content {
+                    opacity: 1; /* Fade in when open */
+                }
+
+                #open-btn {
+                    position: absolute;
+                    top: 10px;
+                    left: 15px;
+                    z-index: 3;
+                    background-color: rgba(17, 17, 17, 0.8);
+                    color: white;
+                    padding: 15px;
+                    border: none;
+                    cursor: pointer;
+                    transition: left 0.3s;
+                    border-radius: 5px;
+                }
+                /* make button move with sidebar */
+                #open-btn.open {
+                    left: 460px; 
+                }
+
+                /* map styling */
+                #map {
+                    position: absolute;
+                    top: 0;
+                    z-index: 1;
+                    bottom: 0;
+                    left: 0;
+                    right: 0;
+                }
+                
+                /* increase width of popups if necessary */
+                .mapboxgl-popup {
+                    max-width: 350px !important;
+                }
+
+                /* text styling */
+                .label {
+                    font-weight: 700;
+                    color: black
+                }
+
+                .credits {
+                    text-align: bottom;
+                    position: absolute; 
+                    bottom: 10px;
+                    font-size: 18px;
+                }
+
+                .title {
+                    font-size:35px;
+                    font-weight: 700
+                }
+
+                .textbody {
+                    font-size:18px;
+                }
+
+                /* filter button styling */
+                .filter-group {
+                    font: 14px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+                    font-weight: 600;
+                    position: absolute;
+                    top: 400px;
+                    right: 280px;
+                    z-index: 9999;
+                    border-radius: 3px;
+                    color: #fff;
+                } 
+                     .filter-group input[type='checkbox']:first-child + label {
+                        border-radius: 3px;
+                    }
+
+                    .filter-group label:last-child {
+                        border-radius: 3px;
+                        border: none;
+                    }
+
+                    .filter-group input[type='checkbox'] {
+                        display: none;
+                    }
+
+                    .filter-group input[type='checkbox'] + label:hover,
+    
+                    .filter-group input[type='checkbox'] + label {
+                        background-color: #acd4ac;
+                        display: block;
+                        cursor: pointer;
+                        padding: 15px;
+                        border-bottom: 1px solid rgba(0, 0, 0, 0.25);
+                        text-transform: capitalize;
+                        color: black;
+                    }
+
+                    .filter-group input[type='checkbox']:checked + label:before {
+                        content: '✔';
+                        margin-right: 5px;
+                    }
+        </style>
+</head>
+<body>
+    <button id="open-btn" class="open" onclick="toggleSidebar()">☰ Open</button> 
+    <div id="sidebar" class="open">
+        <div id="sidebar-content">
+            <h2 class = "title">SCYP Project Map</h2>
+            <p class = "textbody">Through year-long partnerships, the Sustainable City Year Program (SCYP) helps communities solve the problems of today and lay the groundwork for a sustainable, livable future—all while helping students prepare for the workforce through applied learning.</p>
+            <p class = "textbody">This map shows the locations of various SCYP projects across Oregon from 2009 to the present. Click on the various clusters and points to see more details about each project.</p>
+            <h3>Filter by Project Type:</h3>
+            <div class = "filter-group" > 
+                <input type="checkbox" id="specialCheck" checked>
+                <label for="specialCheck">Special Projects</label><br>
+            </div> 
+            <p class = "credits">Map created by Anny Huang and Atticus Tong</p>
+        </div>
+    </div>
+    <div id="map"></div>
+      
+       <script> 
+       // code to open and close sidebar
+        function toggleSidebar() {
+            var sidebar = document.getElementById("sidebar");
+            var button = document.getElementById("open-btn");
+            
+            sidebar.classList.toggle("open");
+            button.classList.toggle("open");
+            // display open/closed based on the state of the sidebar
+            if (sidebar.classList.contains("open")) {
+                button.textContent = "✕ Close";
+            } else {
+                button.textContent = "☰ Open";
+            }
+        }
+
+        //Set bounds so user can't leave Oregon
+         var bounds = [
+                    [-135.5421849213544, 38.826927152413376], // SW coordinates
+                    [-110.39334819516641, 49.32376472000528] // NE coordinates 
+                ];
+
+        mapboxgl.accessToken = 'pk.eyJ1IjoiYXR0aWN1c3RvbmciLCJhIjoiY2x1bGhrY2V5MTN0eDJrbnowZnlrb3JlbiJ9.F1nE5baywAQSkGXZMLPkuw';
+        const map = new mapboxgl.Map({
+            container: 'map',
+            // Custom Mapbox Basemap
+            style: 'mapbox://styles/atticustong/clwqoo43300ry01rb5qxzbia6',
+            projection: 'mercator',
+            zoom: 6.7, // zoom on open
+            maxBounds: bounds, 
+            center: [-121.81042812996942, 44.097169792242894], // Centered on oregon
+            minZoom: 6.10, // limit how far they can zoom out
+            maxZoom: 14 // limit how far they can zoom in
+        });
+
+        map.on('load', () => {
+            // Add geojson data from github
+            map.addSource('citydata', {
+                type: 'geojson',
+                data: 'https://atticustong.github.io/SCYP-Web-Map/citydata/partnerships.geojson',
+                cluster: true,
+                clusterMaxZoom: 11, // Max zoom to cluster points on
+                clusterRadius: 30 // Radius of each cluster when clustering points
+            });
+                // add layer for the clusters
+                map.addLayer({
+                    id: 'clusters',
+                    type: 'circle',
+                    source: 'citydata',
+                    filter: ['has', 'point_count'],
+                    paint: {
+                        // Colors for clusters based on cluster size
+                        'circle-color': [
+                            'step',
+                            ['get', 'point_count'],
+                            '#edf8b1', // color
+                            1,         // # of points in cluster
+                            '#edf8b1',
+                            2,
+                            '#c7e9b4',
+                            3,
+                            '#7fcdbb',
+                            4,
+                            '#41b6c4',
+                            5,
+                            '#1d91c0',
+
+                        // Radius of clusters based on number of points in cluster
+                        ],
+                        'circle-radius': [
+                            'step',
+                            ['get', 'point_count'],
+                            10, // radius
+                            1,  // number of points in cluster
+                            15, 
+                            2,
+                            20,
+                            3,
+                            25,
+                            4,
+                            30,
+                            5,
+                            35,
+                            6,
+                            40
+                        
+                        ],
+                        'circle-stroke-width': 2, // Cluster outline
+                        'circle-stroke-color': '#000000' // Cluster outline color
+                    }
+                });
+
+                // Show number of points as text on clusters
+                map.addLayer({
+                    id: 'cluster-count',
+                    type: 'symbol',
+                    source: 'citydata',
+                    filter: ['has', 'point_count'],
+                    layout: {
+                        'text-field': ['get', 'point_count_abbreviated'],
+                        'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+                        'text-size': 18
+                    }
+                });
+
+                // layer for unclustered points
+                map.addLayer({
+                    id: 'unclustered-point',
+                    type: 'circle',
+                    source: 'citydata',
+                    filter: ['!', ['has', 'point_count']],
+                    paint: {
+                        'circle-color': '#edf8b1',
+                        'circle-radius': 9,
+                        'circle-stroke-width': 2,
+                        'circle-stroke-color': '#000000'
+                    }
+                });
+
+                // zoom into a cluster on click
+                map.on('click', 'clusters', (e) => {
+                    var features = map.queryRenderedFeatures(e.point, { layers: ['clusters'] });
+                    var clusterId = features[0].properties.cluster_id,
+                    point_count = features[0].properties.point_count,
+                    clusterSource = map.getSource('citydata');  /* cluster layer data source id */
+                })
+
+                // adding references to values in the geojson so the popups display the correct information about each project
+                map.on('click', 'unclustered-point', (e) => {
+                const coordinates = e.features[0].geometry.coordinates.slice();
+                const name = e.features[0].properties["city"]; // city of projects
+                const projecttype = e.features[0].properties["project_type"]; // special vs regular project
+                const number = e.features[0].properties["project_number"]; // number of projects
+                const year = e.features[0].properties["year"]; // year of project
+                const reports = e.features[0].properties["project_reports"]; // reports link
+
+                // Add popups to all of the points with information taken from the geojson file
+                new mapboxgl.Popup()
+                    .setLngLat(coordinates)
+                    .setHTML(
+                        `<span class = "label">Location: </span>`+name+`<br>
+                        <span class = "label">Project Type: </span>`+projecttype+`<br>
+                        <span class = "label">Number of Projects: </span>`+number+`<br>
+                        <span class = "label">Project Year: </span>`+year+`<br>
+                        <span class = "label">Reports Link: </span><a href="`+reports+`"target="_blank">Click Here</a>` // text code for popups
+                    )
+                    .addTo(map);
+            });
+        })
+            // Change cursor when hovering over clusters and points
+            map.on('mouseenter', 'clusters', () => {
+                map.getCanvas().style.cursor = 'pointer';
+            });
+            map.on('mouseleave', 'clusters', () => {
+                map.getCanvas().style.cursor = '';
+            });
+            map.on('mouseenter', 'unclustered-point', () => {
+                map.getCanvas().style.cursor = 'pointer';
+            });
+            map.on('mouseleave', 'unclustered-point', () => {
+                map.getCanvas().style.cursor = '';
+            });
+
+            // Add zoom and rotation controls
+            map.addControl(new mapboxgl.NavigationControl());
+
+            // filter code
+            // special project only geojson: https://atticustong.github.io/SCYP-Web-Map/citydata/specialdata.geojson
+            // regular project only geojson: https://atticustong.github.io/SCYP-Web-Map/citydata/regulardata.geojson
+            // combined data geojson (already loaded above as 'citydata'): https://atticustong.github.io/SCYP-Web-Map/citydata/partnerships.geojson 
+            var sourceData = {};
+                inputSpecial.addEventListener('change', function (e) {
+                        var filterString, filterStringIndividual;
+                   
+                        if(e.target.checked){
+                            console.log("special checked")
+                            
+                            var filteredFeatures = JSON.stringify(dataJSON.features.filter(function(i) {
+                              return i.properties["project_type"] == "Y";
+
+                            }));
+                            
+                            var newJSON = `{"type":"FeatureCollection", "features":[` +filteredFeatures + `]};`
+                             
+                             console.log(newJSON);
+                             map.getSource('citydata').setData(JSON.parse(newJSON))
+                             
+                         } 
+                            else {
+                                console.log("special unchecked")
+
+                                var filteredFeatures = JSON.stringify(dataJSON.features.filter(function(i) {
+                                return i.properties["project_type"] == "N";
+                        
+                                }));
+                                
+                                var newJSON = `{"type":"FeatureCollection", "features":[` +filteredFeatures + `]};`
+                                console.log(newJSON);
+                                map.getSource('citydata').setData(JSON.parse(newJSON))
+                            }
+                })
+                                
+                         
+
+     </script>
+</body>
+</html>

@@ -6,6 +6,10 @@
     <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
     <link href="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css" rel="stylesheet">
     <script src="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<   link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet">
+
         <style>
         body {
                     margin: 0;
@@ -21,7 +25,7 @@
                     z-index: 2; /* changed z index so it appears over the map */
                     top: 0;
                     left: -450px; /* Default position is still off-screen */
-                    background-color: rgba(17, 17, 17, 0.8);
+                    background-color: rgba(51, 98, 40, 0.8);
                     overflow-x: hidden;
                     transition: 0.3s;
                     color: white;
@@ -46,7 +50,7 @@
                     top: 10px;
                     left: 15px;
                     z-index: 3;
-                    background-color: rgba(17, 17, 17, 0.8);
+                    background-color: rgba(51, 98, 40, 0.8);
                     color: white;
                     padding: 15px;
                     border: none;
@@ -81,6 +85,9 @@
                 }
 
                 .credits {
+                    font-family: "Lato", sans-serif;
+                    font-weight: 400;
+                    font-style: normal;
                     text-align: bottom;
                     position: absolute; 
                     bottom: 10px;
@@ -88,12 +95,17 @@
                 }
 
                 .title {
-                    font-size:35px;
-                    font-weight: 700
+                    font-family: "Lato", sans-serif;
+                    font-weight: 700;
+                    font-style: normal;
+                    font-size: 35px;
                 }
 
                 .textbody {
-                    font-size:18px;
+                    font-family: "Lato", sans-serif;
+                    font-weight: 400;
+                    font-style: normal;
+                    font-size: 18px;
                 }
 
                 /* filter button styling */
@@ -129,7 +141,7 @@
                         padding: 15px;
                         border-bottom: 1px solid rgba(0, 0, 0, 0.25);
                         text-transform: capitalize;
-                        color: black;
+                        color: rgb(0, 0, 0);
                     }
 
                     .filter-group input[type='checkbox']:checked + label:before {
@@ -142,15 +154,15 @@
     <button id="open-btn" class="open" onclick="toggleSidebar()">☰ Open</button> 
     <div id="sidebar" class="open">
         <div id="sidebar-content">
-            <h2 class = "title">SCYP Project Map</h2>
+            <h2 class = "title">SCYP Partner Map</h2>
             <p class = "textbody">Through year-long partnerships, the Sustainable City Year Program (SCYP) helps communities solve the problems of today and lay the groundwork for a sustainable, livable future—all while helping students prepare for the workforce through applied learning.</p>
-            <p class = "textbody">This map shows the locations of various SCYP projects across Oregon from 2009 to the present. Click on the various clusters and points to see more details about each project.</p>
-            <h3>Filter by Project Type:</h3>
+            <p class = "textbody">This map shows the locations of various SCYP partners across Oregon from 2009 to the present. Click on the various clusters and points to see more details about each partner.</p>
+            <h3>Filter by Partnership Type:</h3>
             <div class = "filter-group" > 
-              <input type="checkbox" id="specialCheck" checked> <!--  the listener needs this ID -JM-->
-                <label for="specialCheck">Special Projects</label><br>
                 <input type="checkbox" id="regularCheck" checked> <!--  added a second button -JM-->
-                <label for="regularCheck">Regular Projects</label><br>
+                <label for="regularCheck">Yearlong Partnerships</label><br>
+                <input type="checkbox" id="specialCheck" checked> <!--  the listener needs this ID -JM-->
+                <label for="specialCheck">Special Projects</label><br>
             </div> 
             <p class = "credits">Map created by Anny Huang and Atticus Tong</p>
         </div>
@@ -205,17 +217,17 @@
                         'circle-color': [
                             'step',
                             ['get', 'point_count'],
-                            '#edf8b1', // color
+                            '#3288bd', // color
                             1,         // # of points in cluster
-                            '#edf8b1',
+                            '#3288bd',
                             2,
-                            '#c7e9b4',
+                            '#abdda4',
                             3,
-                            '#7fcdbb',
+                            '#66c2a5',
                             4,
-                            '#41b6c4',
+                            '#f46d43',
                             5,
-                            '#1d91c0',
+                            '#d53e4f',
 
                         // Radius of clusters based on number of points in cluster
                         ],
@@ -262,7 +274,7 @@
                     source: 'citydata',
                     filter: ['!', ['has', 'point_count']],
                     paint: {
-                        'circle-color': '#edf8b1',
+                        'circle-color': '#3288bd',
                         'circle-radius': 9,
                         'circle-stroke-width': 2,
                         'circle-stroke-color': '#000000'
@@ -303,16 +315,18 @@
                 const number = e.features[0].properties["project_number"]; // number of projects
                 const year = e.features[0].properties["year"]; // year of project
                 const reports = e.features[0].properties["project_reports"]; // reports link
+                const projectlink = e.features[0].properties["project_link"];
+                const classes = e.features[0].properties["class_amount"];
 
                 // Add popups to all of the points with information taken from the geojson file
                 new mapboxgl.Popup()
                     .setLngLat(coordinates)
                     .setHTML(
-                        `<span class = "label">Location: </span>`+name+`<br>
-                        <span class = "label">Project Type: </span>`+projecttype+`<br>
-                        <span class = "label">Number of Projects: </span>`+number+`<br>
-                        <span class = "label">Project Year: </span>`+year+`<br>
-                        <span class = "label">Reports Link: </span><a href="`+reports+`"target="_blank">Click Here</a>` // text code for popups
+                        ``+name+` `+year+`<br>
+                        `+projecttype+`<br>
+                        `+classes+`<br>
+                        <a href="   "target="_blank">`+number+` Projects</a> <br>
+                        <a href="`+reports+`"target="_blank">View Reports</a>` // text code for popups
                     )
                     .addTo(map);
             });
@@ -355,6 +369,20 @@
                                 clusterMaxZoom: 11, // Max zoom to cluster points on
                                 clusterRadius: 30 // Radius of each cluster when clustering points
                             });
+
+                            if(e.target.checked){
+                            console.log("special checked")
+                            
+                            removeLayers();
+                            map.removeSource('citydata');
+                            
+                            map.addSource('citydata', {
+                                type: 'geojson',
+                                data: 'https://atticustong.github.io/SCYP-Web-Map/citydata/partnerships.geojson',
+                                cluster: true,
+                                clusterMaxZoom: 11, // Max zoom to cluster points on
+                                clusterRadius: 30 // Radius of each cluster when clustering points
+                            });    
                             
                          } else {
                                 console.log("special unchecked")
@@ -373,6 +401,7 @@
 
                             }
                         addLayers();
+                        }
                     
                 })
                                 

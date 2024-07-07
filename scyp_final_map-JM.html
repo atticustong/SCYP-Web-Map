@@ -19,7 +19,7 @@
 
                 /* sidebar styling */
                 #sidebar {
-                    height: 80%;
+                    height: 50%;
                     width: 450px;
                     position: fixed;
                     z-index: 2; /* changed z index so it appears over the map */
@@ -108,46 +108,7 @@
                     font-size: 18px;
                 }
 
-                /* filter button styling */
-                .filter-group {
-                    font: 14px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
-                    font-weight: 600;
-                    position: absolute;
-                    top: 450px;
-                    right: 280px;
-                    z-index: 9999;
-                    border-radius: 3px;
-                    color: #fff;
-                } 
-                     .filter-group input[type='checkbox']:first-child + label {
-                        border-radius: 3px;
-                    }
-
-                    .filter-group label:last-child {
-                        border-radius: 3px;
-                        border: none;
-                    }
-
-                    .filter-group input[type='checkbox'] {
-                        display: none;
-                    }
-
-                    .filter-group input[type='checkbox'] + label:hover,
-    
-                    .filter-group input[type='checkbox'] + label {
-                        background-color: #acd4ac;
-                        display: block;
-                        cursor: pointer;
-                        padding: 15px;
-                        border-bottom: 1px solid rgba(0, 0, 0, 0.25);
-                        text-transform: capitalize;
-                        color: rgb(0, 0, 0);
-                    }
-
-                    .filter-group input[type='checkbox']:checked + label:before {
-                        content: '✔';
-                        margin-right: 5px;
-                    }
+                
         </style>
 </head>
 <body>
@@ -157,13 +118,6 @@
             <h2 class = "title">SCYP Partner Map</h2>
             <p class = "textbody">Through year-long partnerships, the Sustainable City Year Program (SCYP) helps communities solve the problems of today and lay the groundwork for a sustainable, livable future—all while helping students prepare for the workforce through applied learning.</p>
             <p class = "textbody">This map shows the locations of various SCYP partners across Oregon from 2009 to the present. Click on the various clusters and points to see more details about each partner.</p>
-            <h3>Filter by Partnership Type:</h3>
-            <div class = "filter-group" > 
-                <input type="checkbox" id="regularCheck" checked> <!--  added a second button -JM-->
-                <label for="regularCheck">Yearlong Partnerships</label><br>
-                <input type="checkbox" id="specialCheck" checked> <!--  the listener needs this ID -JM-->
-                <label for="specialCheck">Special Projects</label><br>
-            </div> 
             <p class = "credits">Map created by Anny Huang and Atticus Tong</p>
         </div>
     </div>
@@ -291,7 +245,7 @@
             // Add geojson data from github
             map.addSource('citydata', {
                 type: 'geojson',
-                data: 'https://atticustong.github.io/SCYP-Web-Map/citydata/partnerships.geojson',
+                data: 'https://atticustong.github.io/SCYP-Web-Map/citydata/partnerships1.geojson',
                 cluster: true,
                 clusterMaxZoom: 11, // Max zoom to cluster points on
                 clusterRadius: 30 // Radius of each cluster when clustering points
@@ -324,8 +278,8 @@
                     .setHTML(
                         ``+name+` `+year+`<br>
                         `+projecttype+`<br>
-                        `+classes+`<br>
-                        <a href="   "target="_blank">`+number+` Projects</a> <br>
+                        `+classes+` Classes<br>
+                        <a href="`+projectlink+`"target="_blank">`+number+` Projects</a> <br>
                         <a href="`+reports+`"target="_blank">View Reports</a>` // text code for popups
                     )
                     .addTo(map);
@@ -346,66 +300,7 @@
             });
 
             // Add zoom and rotation controls
-            map.addControl(new mapboxgl.NavigationControl());
-
-            // filter code
-            // special project only geojson: https://atticustong.github.io/SCYP-Web-Map/citydata/specialdata.geojson
-            // regular project only geojson: https://atticustong.github.io/SCYP-Web-Map/citydata/regulardata.geojson
-            // combined data geojson (already loaded above as 'citydata'): https://atticustong.github.io/SCYP-Web-Map/citydata/partnerships.geojson 
-            var sourceData = {};
-                specialCheck.addEventListener('change', function (e) {
-                        var filterString, filterStringIndividual;
-                   
-                        if(e.target.checked){
-                            console.log("special checked")
-                            
-                            removeLayers();
-                            map.removeSource('citydata');
-                            
-                            map.addSource('citydata', {
-                                type: 'geojson',
-                                data: 'https://atticustong.github.io/SCYP-Web-Map/citydata/partnerships.geojson',
-                                cluster: true,
-                                clusterMaxZoom: 11, // Max zoom to cluster points on
-                                clusterRadius: 30 // Radius of each cluster when clustering points
-                            });
-
-                            if(e.target.checked){
-                            console.log("special checked")
-                            
-                            removeLayers();
-                            map.removeSource('citydata');
-                            
-                            map.addSource('citydata', {
-                                type: 'geojson',
-                                data: 'https://atticustong.github.io/SCYP-Web-Map/citydata/partnerships.geojson',
-                                cluster: true,
-                                clusterMaxZoom: 11, // Max zoom to cluster points on
-                                clusterRadius: 30 // Radius of each cluster when clustering points
-                            });    
-                            
-                         } else {
-                                console.log("special unchecked")
-                        
-                                removeLayers();
-                                map.removeSource('citydata');
-                                
-                                 map.addSource('citydata', {
-                                    type: 'geojson',
-                                    data: 'https://atticustong.github.io/SCYP-Web-Map/citydata/regulardata.geojson',
-                                    cluster: true,
-                                    clusterMaxZoom: 11, // Max zoom to cluster points on
-                                    clusterRadius: 30 // Radius of each cluster when clustering points
-                                });
-                                
-
-                            }
-                        addLayers();
-                        }
-                    
-                })
-                                
-                         
+            map.addControl(new mapboxgl.NavigationControl());    
 
      </script>
 </body>
